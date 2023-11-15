@@ -1,4 +1,4 @@
-import { PlayerLiveConnection } from "./websocket-handler";
+import { PlayerLiveConnection } from "../websocket/websocket.model";
 
 export class PlayerClass {
   id: string;
