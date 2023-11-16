@@ -16,3 +16,13 @@ export type PlayerEventData = {
   type: PLAYER_EVENTS
   data: any
 }
+
+/**
+ * Represents the player data necessary to render the player
+ */
+export type RenderPlayerData = {
+  id: string;
+  position: [number, number];
+  name: string;
+  health: number;
+}

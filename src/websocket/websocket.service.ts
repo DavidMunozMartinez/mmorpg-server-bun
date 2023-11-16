@@ -1,16 +1,18 @@
+import { Server } from "bun";
 import { PlayerClass } from "../player/player.class";
-import { PLAYER_EVENTS } from "../player/player.model";
+import { PLAYER_EVENTS, RenderPlayerData } from "../player/player.model";
 import { handleWSEvent } from "./websocket.handler";
 import { InputWSEvent, PlayerLiveConnection, WSEvents } from "./websocket.model";
 
 class WebSocketServiceClass {
 
-  connections: Map<string, PlayerClass> = new Map<string, PlayerClass>()
+  livePlayers: Map<string, PlayerClass> = new Map<string, PlayerClass>();
+  webSocketServer!: Server;
 
   constructor() {}
 
   init() {
-    Bun.serve({
+    this.webSocketServer = Bun.serve({
       fetch(req, server) {
         const url = new URL(req.url);
         const playerId = url.searchParams.get('userId');
@@ -34,22 +36,39 @@ class WebSocketServiceClass {
         open: this.onOpen.bind(this),
         close: this.onClose.bind(this),
       }
-    })
+    });
   }
 
   add(player: PlayerClass) {
-    this.connections.set(player.id, player);
-    console.log('New player')
+    this.livePlayers.set(player.id, player);
+    console.log('New player, total: ', this.livePlayers.values.length);
   }
 
   remove(playerId: string) {
-    this.connections.delete(playerId);
+    this.livePlayers.delete(playerId);
+    console.log('Removed player, total: ', this.livePlayers.values.length);
   }
 
   notifyAll(event: InputWSEvent) {
-    this.connections.forEach((player) => {
+    this.livePlayers.forEach((player) => {
       player.socket.send(JSON.stringify(event));
     });
+  }
+
+  /**
+   * Specifically returns just the necessary data so the UI can render the player
+   */
+  getRenderPlayersData(): RenderPlayerData[] {
+    const players: RenderPlayerData[] = [];
+    this.livePlayers.forEach((player: PlayerClass) => {
+      players.push({
+        id: player.id,
+        position: player.position,
+        name: player.name,
+        health: player.health,
+      })
+    });
+    return players;
   }
 
   private onMessage(webSocket: PlayerLiveConnection, message: string) {
