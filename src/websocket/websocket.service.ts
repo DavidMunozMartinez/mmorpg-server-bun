@@ -30,13 +30,14 @@ class WebSocketServiceClass {
         }
         return new Response("Ok!");
       },
-      port: 8080,
+      port: process.env.WS_PORT,
       websocket: {
         message: this.onMessage.bind(this),
         open: this.onOpen.bind(this),
         close: this.onClose.bind(this),
       }
     });
+    console.log('WS Server started in port: ', process.env.WS_PORT)
   }
 
   add(player: PlayerClass) {
